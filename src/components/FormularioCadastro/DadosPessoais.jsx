@@ -1,35 +1,37 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { TextField, Button, Switch, FormControlLabel } from '@mui/material';
+import ValidacoesCadastro from '../../context/ValidacoesCadastro';
+import useErros from '../../hooks/useErros';
 
-function DadosPessoais({aoEnviar, validacoes}) {
+function DadosPessoais({aoEnviar}) {
     const [nome, setNome] = useState("");
     const [sobrenome, setSobrenome] = useState("");
     const [cpf, setCpf] = useState("");
     const [promocoes, setPromocoes] = useState(true);
     const [novidades, setNovidades] = useState(true);
-    const [erros, setErros] = useState({cpf: {valido: true, texto: ''}});
-
-    function validarCampos(event) {
-        console.log(event.target)
-        const { name, value } = event.target;
-        const novoEstado = {...erros}
-        novoEstado[name] = validacoes[name](value);
-        setErros(novoEstado)
-    }
     
+    const validacoes = useContext(ValidacoesCadastro)
+    const [erros, validarCampos, possoEnviar] = useErros(validacoes);
+
     return (
         <form 
             onSubmit={(event) => {
-                event.preventDefault()
-                aoEnviar({nome, sobrenome, cpf, novidades, promocoes})
+                event.preventDefault();
+                if (possoEnviar()) {
+                    aoEnviar({nome, sobrenome, cpf, novidades, promocoes})
+                }
             }}
         >
             <TextField 
                 value={nome}
                 onChange={event => {
                     setNome(event.target.value);
-                }} 
+                }}
+                onBlur={validarCampos}
+                error={!erros.nome.valido}
+                helperText={erros.nome.texto}
                 id="nome" 
+                name='nome'
                 label="Nome" 
                 margin="normal" 
                 fullWidth
@@ -40,6 +42,7 @@ function DadosPessoais({aoEnviar, validacoes}) {
                     setSobrenome(event.target.value);
                 }} 
                 id="sobrenome" 
+                name='sobrenome'
                 label="Sobrenome" 
                 margin="normal" 
                 fullWidth 
@@ -81,7 +84,7 @@ function DadosPessoais({aoEnviar, validacoes}) {
                     />} 
             />
 
-            <Button type="submit" variant="contained">Cadastrar</Button>
+            <Button type="submit" variant="contained">Próximo</Button>
         </form>
     );
 }
